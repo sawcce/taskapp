@@ -1,9 +1,9 @@
 # Taskaratus!
-Task-It is a tool to automate running CLIs and other tasks
+Task-Apparatus (taskaratus) is a tool to automate running CLIs and other tasks
 so you can build, iterate and ship your projects faster.
 
 ## Taskaratus 101
-Task-It is cenetered around tasks organized as routes:
+This tool is cenetered around tasks organized as routes:
 
 ```
 app
