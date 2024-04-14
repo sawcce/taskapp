@@ -1,0 +1,19 @@
+[project]
+name = "taskapp"
+version = "0.0.1"
+authors = [{ name = "sawcce", email = "sawcce@proton.me" }]
+description = "A cli to automate tasks"
+requires-python = ">=3.10"
+readme = "README.md"
+dependencies = ["pyyaml"]
+
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.target.sdist.force-include]
+"src/cli.py" = "src/taskapp/cli.py"
+
+[project.scripts]
+taskapp = "taskapp.cli:main"

@@ -1,0 +1,15 @@
+name: "taskapp"
+description: "The task apparatus build system"
+
+routes:
+  # This route has no subroutes, thus the task is declared
+  # as `def build()` in `tasks/build.py`
+  - build
+  
+  # This is a "catch" route, meaning that each subroute
+  # is declared as a task within `tasks/install.py`
+  - install(catch):
+    # Installs the package locally for test purposes
+    - local:
+    # Demo nested route
+      - demo
