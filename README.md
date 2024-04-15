@@ -50,4 +50,4 @@ will be in `tasks/build.py`.
 
 `deploy` is a `catch` route, meaning it "ends" the route tree:
 each subsequent subroute's task will defined in `tasks/deploy.py`.
-For instance, `bar`'s task definition would bear the name "foo.bar". 
+For instance, `bar`'s task definition would bear the name "foo_bar". 
