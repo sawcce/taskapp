@@ -3,6 +3,16 @@ description: "The task apparatus build system"
 
 routes:
   - greet(caught)
+  - greet(catch):
+    - "*":
+      - affirmative
+      - unsure
+      - excited
+    - "*"
+  - translate(catch):
+    - list
+    - "*"
+
   # This route has no subroutes, thus the task is declared
   # as `def build()` in `tasks/build.py`
   - build
@@ -14,3 +24,4 @@ routes:
     - local:
     # Demo nested route
       - demo
+    - "*"

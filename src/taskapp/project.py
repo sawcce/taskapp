@@ -1,3 +1,4 @@
+from traceback import print_tb
 from yaml import load, Loader
 from os import path
 import pprint
@@ -48,13 +49,15 @@ class Route:
     def init_basic(self, route_data, root: list[str] = ["tasks"], caught: bool = False, identifier: list[str] = []):
         name, data = parse_route_name(route_data)
         if name == "*":
-           self.wildcard = True 
+            name = "wildcard"
+            self.wildcard = True 
+
         self.name = name
         self.__dict__.update(data)
 
         if caught and self.caught:
             raise Exception("A caught route whos parents catches is redundant")
-        elif caught or self.caught:
+        elif caught or self.caught or self.wildcard:
             self.path = root
             self.identifier = identifier + [name]
         else:
@@ -63,7 +66,11 @@ class Route:
     def init_composite(self, route_data, root: list[str] = ["tasks"], caught: bool = False, identifier: list[str] = []):
         items = list(route_data.items())
         name, data = parse_route_name(items[0][0])
+        if name == "*":
+            name = "wildcard"
+            self.wildcard = True
         self.name = name
+
         self.__dict__.update(data)
 
         if len(items) != 1:
@@ -113,17 +120,20 @@ class Project:
         for route_data in project_data["routes"]:
             self.routes.append(Route(route_data))
     
-    def match(self, args, routes = None, nest_level: int = 0):
+    def match(self, args, routes = None, level: int = 0, wild_matches: list[str] = []) -> tuple[Route, list[str]] | None:
         if len(args) == 0:
             return None
         if routes == None:
             routes = self.routes
 
         for route in routes:
-            if args[0] == route.name:
+            if args[0] == route.name or route.wildcard:
+                if route.wildcard:
+                    wild_matches = wild_matches[:] + [args[0]]
+
                 if len(args) == 1:
-                    return route
-                result = self.match(args[1:], route.subroutes, nest_level + 1)
+                    return route, wild_matches
+                result = self.match(args[1:], route.subroutes, level + 1, wild_matches)
 
                 if result:
                     return result

@@ -10,13 +10,14 @@ def main():
     project_data = parse_project(cwd)
     project = Project(project_data)
     matched = project.match(args)
+    print(matched)
 
     print(f'Running the Task Apparatus on the "{project.name}" project')
 
     # TODO: Handle catch routes
     if matched:
-        # This means we're calling the route 'anonymously', e.g.
-        # test route => test route route
+        matched, wild_matches = matched
+
         if len(args) != len(matched.path) + len(matched.identifier) - 1:
             raise Exception("Wrong amount of arguments!")
 
@@ -35,13 +36,17 @@ def main():
         sys.modules[module_name] = module
         spec.loader.exec_module(module) # type: ignore
 
+        print(matched)
+        print(module_name)
+
         method_name = f"taskapp${module_name}${matched.name}"
+        print(method_name)
 
         if len(matched.identifier) > 0:
             method_name = f"taskapp${module_name}$" + ".".join(matched.identifier)
 
         if hasattr(module, method_name) and callable(getattr(module, method_name)):
-            execution_result = getattr(module, method_name)()
+            execution_result = getattr(module, method_name)(*wild_matches)
             if execution_result:
                 print("Task yielded:")
                 print(execution_result)

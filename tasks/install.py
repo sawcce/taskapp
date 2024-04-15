@@ -13,3 +13,7 @@ def local():
 def demo():
     """Demonstrates nested routes in a 'catch' route"""
     return "Hey!"
+
+@task(name="wildcard")
+def wildcard(match: str):
+    return match
