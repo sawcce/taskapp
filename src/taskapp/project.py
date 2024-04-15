@@ -37,6 +37,7 @@ class Route:
     name: str
     path: list[str]
     identifier: list[str]
+    wildcard: bool = False
     standalone: bool = False
     """Means that the route can be called without any subroute"""
     catch: bool = False
@@ -44,8 +45,9 @@ class Route:
     subroutes: list["Route"]
 
     def init_basic(self, route_data, root: list[str] = [], caught: bool = False, identifier: list[str] = []):
-        print(f"Basic route: {route_data}")
         name, data = parse_route_name(route_data)
+        if name == "*":
+           self.wildcard = True 
         self.name = name
         self.__dict__.update(data)
 

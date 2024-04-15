@@ -1,4 +1,5 @@
-from taskapp import run
+from taskapp import task, run
 
+@task(name="build")
 def build():
     run("python", "-m", "build")
