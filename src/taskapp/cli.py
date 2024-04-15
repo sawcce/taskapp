@@ -17,22 +17,22 @@ def main():
     if matched:
         # This means we're calling the route 'anonymously', e.g.
         # test route => test route route
-        if len(args) != len(matched.path) + len(matched.identifier):
+        if len(args) != len(matched.path) + len(matched.identifier) - 1:
             raise Exception("Wrong amount of arguments!")
 
-        path = os.path.join(cwd, "tasks", *matched.path[:-2])
+        path = os.path.join(cwd, *matched.path[:-1])
         path = os.path.join(path, matched.path[len(matched.path) - 1] + ".py")
 
         print(f'Loading module at path: "{path}"...')
 
-        module_name = ".".join(matched.path)
+        module_name = ".".join(["taskroot"] + matched.path[1:])
         spec = importlib.util.spec_from_file_location(module_name, path)
 
         if spec == None:
             raise Exception("Couldn't generate module spec!")
             
         module = importlib.util.module_from_spec(spec)
-        sys.modules['install'] = module
+        sys.modules[module_name] = module
         spec.loader.exec_module(module) # type: ignore
 
         method_name = f"taskapp${module_name}${matched.name}"

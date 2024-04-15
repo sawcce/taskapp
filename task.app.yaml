@@ -2,6 +2,7 @@ name: "taskapp"
 description: "The task apparatus build system"
 
 routes:
+  - greet(caught)
   # This route has no subroutes, thus the task is declared
   # as `def build()` in `tasks/build.py`
   - build

@@ -37,6 +37,7 @@ class Route:
     name: str
     path: list[str]
     identifier: list[str]
+    caught: bool = False
     wildcard: bool = False
     standalone: bool = False
     """Means that the route can be called without any subroute"""
@@ -44,20 +45,22 @@ class Route:
     """Dictates whether or not this route is a file or directory"""
     subroutes: list["Route"]
 
-    def init_basic(self, route_data, root: list[str] = [], caught: bool = False, identifier: list[str] = []):
+    def init_basic(self, route_data, root: list[str] = ["tasks"], caught: bool = False, identifier: list[str] = []):
         name, data = parse_route_name(route_data)
         if name == "*":
            self.wildcard = True 
         self.name = name
         self.__dict__.update(data)
 
-        if caught:
+        if caught and self.caught:
+            raise Exception("A caught route whos parents catches is redundant")
+        elif caught or self.caught:
             self.path = root
             self.identifier = identifier + [name]
         else:
             self.path = root + [name]
 
-    def init_composite(self, route_data, root: list[str] = [], caught: bool = False, identifier: list[str] = []):
+    def init_composite(self, route_data, root: list[str] = ["tasks"], caught: bool = False, identifier: list[str] = []):
         items = list(route_data.items())
         name, data = parse_route_name(items[0][0])
         self.name = name
@@ -68,6 +71,8 @@ class Route:
         
         if self.catch and caught:
             raise Exception("Cannot have nested catch routes!")
+        elif self.caught:
+            raise Exception("A caught route cannot have subroutes!")
         elif self.catch:
             self.path = root + [name]
             root = root[:] + [name]
@@ -83,7 +88,7 @@ class Route:
         for subroute in items[0][1]:
             self.subroutes += [Route(subroute, root=root, caught=self.catch or caught, identifier=identifier)]
 
-    def __init__(self, route_data, root: list[str] = [], caught: bool = False, identifier: list[str] = []) -> None:
+    def __init__(self, route_data, root: list[str] = ["tasks"], caught: bool = False, identifier: list[str] = []) -> None:
         self.subroutes = []
         self.identifier = []
 
@@ -118,4 +123,7 @@ class Project:
             if args[0] == route.name:
                 if len(args) == 1:
                     return route
-                return self.match(args[1:], route.subroutes, nest_level + 1)
+                result = self.match(args[1:], route.subroutes, nest_level + 1)
+
+                if result:
+                    return result
