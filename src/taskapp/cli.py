@@ -10,7 +10,6 @@ def main():
     project_data = parse_project(cwd)
     project = Project(project_data)
     matched = project.match(args)
-    print(matched)
 
     print(f'Running the Task Apparatus on the "{project.name}" project')
 
@@ -36,11 +35,7 @@ def main():
         sys.modules[module_name] = module
         spec.loader.exec_module(module) # type: ignore
 
-        print(matched)
-        print(module_name)
-
         method_name = f"taskapp${module_name}${matched.name}"
-        print(method_name)
 
         if len(matched.identifier) > 0:
             method_name = f"taskapp${module_name}$" + ".".join(matched.identifier)
