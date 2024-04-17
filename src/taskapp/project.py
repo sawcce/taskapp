@@ -137,7 +137,13 @@ class Route:
 
 
 class Runner:
-    def run(self, project: "Project", params: dict[str, Any], match: Route, wild_matches: list[str]):
+    def run(
+        self,
+        project: "Project",
+        params: dict[str, Any],
+        match: Route,
+        wild_matches: list[str],
+    ):
         pass
 
 
