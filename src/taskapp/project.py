@@ -162,10 +162,10 @@ def write_cache(data: Any, path: str = default_cache_path):
     file_path = Path(path)
     file_path.write_text(dump(data))
 
-def cached_last_modification(path: str) -> int | None:
-    data = get_cache()["files"].get(path)
+def cached_last_modification(module_name: str, task_name: str, path: str) -> int | None:
+    data = get_cache()["files"].get(f"{module_name}::{task_name}:{path}")
     if data == None:
-        cache_modification(path, last_modification(path))
+        cache_modification(module_name, task_name, path, last_modification(path))
 
     return data
 
@@ -173,7 +173,7 @@ def last_modification(path: str) -> int:
     file_path = Path(path)
     return file_path.stat().st_mtime_ns
 
-def cache_modification(path: str, time: float | int):
+def cache_modification(module_name: str, task_name: str, path: str, time: float | int):
     data = get_cache()
-    data["files"][path] = time
+    data["files"][f"{module_name}::{task_name}:{path}"] = time
     write_cache(data)

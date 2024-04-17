@@ -67,7 +67,7 @@ def task(name: str, dir: str | None = None, prelude: Prelude | None = None):
                         sys.modules["taskapp"].current_meta = old_meta # type: ignore
                         return
                     
-                    if not should_recompute(prelude_result.dependencies):
+                    if not should_recompute(module_name, name, prelude_result.dependencies):
                         print("Nothing to recompute!")
                         return f"Task {module_name}.{name} had nothing to recompute based on its dependencies"
                 elif prelude_result == None:
@@ -76,7 +76,7 @@ def task(name: str, dir: str | None = None, prelude: Prelude | None = None):
             result = definition(*args)
         
             for dep in prelude_result.dependencies:
-                cache_modification(dep, last_modification(dep))
+                cache_modification(module_name, name, dep, last_modification(dep))
 
             sys.modules["taskapp"].current_meta = old_meta # type: ignore
             return result
@@ -86,13 +86,13 @@ def task(name: str, dir: str | None = None, prelude: Prelude | None = None):
         return lambda x: None
     return wrapper
 
-def should_recompute(dependencies: list[str]):
+def should_recompute(module_name: str, task_name: str, dependencies: list[str]):
     if len(dependencies) == 0:
         return True
 
     should = False
     for dep in dependencies:
-        cached = cached_last_modification(dep)
+        cached = cached_last_modification(module_name, task_name, dep)
         if cached == None or cached < last_modification(dep):
             should = True
     return should
