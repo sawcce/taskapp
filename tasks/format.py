@@ -23,4 +23,3 @@ def wildcard_prelude(file: str):
 @task(name="wildcard")
 def wildcard(file: str):
     run("python", "-m", "black", file)
-    print(f"Formatting {file}")
