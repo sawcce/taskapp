@@ -2,6 +2,19 @@
 Task-Apparatus (taskaratus) is a tool to automate running CLIs and other tasks
 so you can build, iterate and ship your projects faster.
 
+## Features
+Taskapp provides you with the tools to automate boring tasks.
+That's why it gives you the following tools:
+- A structured way to declare your tasks
+- Basic pattern matching for your routes
+- File dependencies
+    - Only recompute tasks when a file changes
+    - Possibility to override this using `--force-recompute`
+- Task dependencies
+    - A task will first call a set of tasks before executing
+    - If these tasks aren't recomputed this one won't recompute (W.I.P)
+- Preludes to validate input when a task is run
+
 ## Taskaratus 101
 This tool is cenetered around tasks organized as routes:
 
@@ -50,4 +63,62 @@ will be in `tasks/build.py`.
 
 `deploy` is a `catch` route, meaning it "ends" the route tree:
 each subsequent subroute's task will defined in `tasks/deploy.py`.
-For instance, `bar`'s task definition would bear the name "foo_bar". 
+For instance, `bar`'s task definition would be defined using `@task(name="foo.bar)`.
+
+## How to use
+This repository uses Taskapp! Feel free to look at the examples.
+
+### The root file
+
+The structure of your taskapp project is defined in `task.app.yaml`.
+This yaml file should contain the following fields:
+```yaml
+name: "..."
+description: "..."
+
+routes:
+    - ...
+```
+
+### A simple project
+Let's say you have a project that can be:
+- Installed
+    - User-only (local)
+    - System wide (system)
+- Compiled
+    - For a specific target
+        - Debug
+        - Optimized (opt-level 1 by default)
+        - Production
+    - Default (debug)
+
+Here what your routes would look like:
+```yaml
+routes:
+    - install(catch):
+        - local
+        - system
+    - compile(catch):
+        - target:
+            - debug
+            - optimized:
+                - "*"
+            - production
+```
+
+Now what does catch mean?
+
+Catch indicates that each subroute's task will be implemented in `tasks/x.py` or `tasks.install.py` in
+the case of the install route.
+
+Now, let's see what the implementation could look like, let's take a look at
+`example/tasks/install.py`
+
+Great! So now you've seen how we can make a simple script.
+
+Let's now look at `example/tasks/compile.py`.
+
+### More complex examples
+...
+
+W.I.P

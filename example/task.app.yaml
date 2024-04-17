@@ -1,0 +1,13 @@
+name: taskapp-demo
+description: A showcase of taskapp's features
+
+routes:
+    - install(catch):
+        - local
+        - system
+    - compile(catch):
+        - target:
+            - debug
+            - optimized:
+                - "*"
+            - production
