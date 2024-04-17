@@ -56,7 +56,6 @@ def task(
     name: str,
     dir: str | None = None,
     prelude: Prelude | None = None,
-    phony: bool = False,
 ):
     """
     A decorator to define a task, the actual function name is meaningless.  \n
