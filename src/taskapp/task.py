@@ -33,7 +33,7 @@ class Prelude:
 
 
 def Fail(reason: Any):  # type: ignore
-    return Prelude(reason)
+    return Prelude(reason=reason)
 
 
 def Glob(*patterns: str):
