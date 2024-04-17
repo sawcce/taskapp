@@ -7,6 +7,7 @@ import importlib.util
 
 # TODO: Handle nested routes with the same name
 
+
 class CliRunner(Runner):
     modules: dict[str, ModuleType]
 
