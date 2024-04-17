@@ -2,6 +2,10 @@
 Task-Apparatus (taskaratus) is a tool to automate running CLIs and other tasks
 so you can build, iterate and ship your projects faster.
 
+It can act as a build system, task automation pipeline, etc...
+Taskapp uses python as its implementation language and 
+the language is also used for defining tasks.
+
 ## Features
 Taskapp provides you with the tools to automate boring tasks.
 That's why it gives you the following tools:
