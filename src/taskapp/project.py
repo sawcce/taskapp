@@ -4,12 +4,13 @@ from yaml import dump, load, Loader
 from os import path
 import pprint
 
+
 def parse_project(root: str):
     project_path = path.join(root, "task.app.yaml")
 
     with open(project_path) as file:
         yaml_contents = file.read()
-    
+
     project = load(yaml_contents, Loader=Loader)
     return project
 
@@ -20,7 +21,7 @@ def parse_route_name(name: str):
         end = name.index(")")
         data = {}
 
-        args = name[start+1:end].split(",")
+        args = name[start + 1 : end].split(",")
 
         for arg in args:
             split = list(map(lambda x: x.strip(), arg.split(":")))
@@ -35,6 +36,7 @@ def parse_route_name(name: str):
     except ValueError:
         return (name, {})
 
+
 class Route:
     name: str
     path: list[str]
@@ -47,11 +49,17 @@ class Route:
     """Dictates whether or not this route is a file or directory"""
     subroutes: list["Route"]
 
-    def init_basic(self, route_data, root: list[str] = ["tasks"], caught: bool = False, identifier: list[str] = []):
+    def init_basic(
+        self,
+        route_data,
+        root: list[str] = ["tasks"],
+        caught: bool = False,
+        identifier: list[str] = [],
+    ):
         name, data = parse_route_name(route_data)
         if name == "*":
             name = "wildcard"
-            self.wildcard = True 
+            self.wildcard = True
 
         self.name = name
         self.__dict__.update(data)
@@ -64,7 +72,13 @@ class Route:
         else:
             self.path = root + [name]
 
-    def init_composite(self, route_data, root: list[str] = ["tasks"], caught: bool = False, identifier: list[str] = []):
+    def init_composite(
+        self,
+        route_data,
+        root: list[str] = ["tasks"],
+        caught: bool = False,
+        identifier: list[str] = [],
+    ):
         items = list(route_data.items())
         name, data = parse_route_name(items[0][0])
         if name == "*":
@@ -76,7 +90,7 @@ class Route:
 
         if len(items) != 1:
             raise Exception("Wrong amount of items")
-        
+
         if self.catch and caught:
             raise Exception("Cannot have nested catch routes!")
         elif self.caught:
@@ -94,9 +108,22 @@ class Route:
             root = self.path
 
         for subroute in items[0][1]:
-            self.subroutes += [Route(subroute, root=root, caught=self.catch or caught, identifier=identifier)]
+            self.subroutes += [
+                Route(
+                    subroute,
+                    root=root,
+                    caught=self.catch or caught,
+                    identifier=identifier,
+                )
+            ]
 
-    def __init__(self, route_data, root: list[str] = ["tasks"], caught: bool = False, identifier: list[str] = []) -> None:
+    def __init__(
+        self,
+        route_data,
+        root: list[str] = ["tasks"],
+        caught: bool = False,
+        identifier: list[str] = [],
+    ) -> None:
         self.subroutes = []
         self.identifier = []
 
@@ -107,10 +134,12 @@ class Route:
 
     def __repr__(self) -> str:
         return pprint.pformat(self.__dict__)
-    
+
+
 class Runner:
-    def run(self, project: "Project", match: Route, wild_matches: list[str]):
+    def run(self, project: "Project", params: dict[str, Any], match: Route, wild_matches: list[str]):
         pass
+
 
 class Project:
     name: str
@@ -126,8 +155,10 @@ class Project:
 
         for route_data in project_data["routes"]:
             self.routes.append(Route(route_data))
-    
-    def match(self, args, routes = None, level: int = 0, wild_matches: list[str] = []) -> tuple[Route, list[str]] | None:
+
+    def match(
+        self, args, routes=None, level: int = 0, wild_matches: list[str] = []
+    ) -> tuple[Route, list[str]] | None:
         if len(args) == 0:
             return None
         if routes == None:
@@ -145,7 +176,7 @@ class Project:
                 if result:
                     return result
 
-    def execute(self, route: str | list[str]):
+    def execute(self, route: str | list[str], params: dict[str, Any]):
         args = route
 
         if isinstance(route, str):
@@ -154,7 +185,7 @@ class Project:
         matched = self.match(args)
         if matched:
             matched, wild_matches = matched
-            self.runner.run(self, matched, wild_matches)
+            self.runner.run(self, params, matched, wild_matches)
             if len(args) != len(matched.path) + len(matched.identifier) - 1:
                 raise Exception("Wrong amount of arguments!")
         else:
@@ -165,14 +196,12 @@ class Project:
 
 
 def cache_template():
-    return {
-        "files": {
+    return {"files": {}}
 
-        }
-    }
 
 # TODO: Optimize cache
 default_cache_path = "taskapp.cache.yaml"
+
 
 def get_cache(path: str = default_cache_path):
     file_path = Path(path)
@@ -180,12 +209,14 @@ def get_cache(path: str = default_cache_path):
     if not file_path.is_file():
         Path.write_text(file_path, dump(cache_template()))
         return cache_template()
-    
+
     return load(file_path.read_text(), Loader)
+
 
 def write_cache(data: Any, path: str = default_cache_path):
     file_path = Path(path)
     file_path.write_text(dump(data))
+
 
 def cached_last_modification(module_name: str, task_name: str, path: str) -> int | None:
     data = get_cache()["files"].get(f"{module_name}::{task_name}:{path}")
@@ -194,9 +225,11 @@ def cached_last_modification(module_name: str, task_name: str, path: str) -> int
 
     return data
 
+
 def last_modification(path: str) -> int:
     file_path = Path(path)
     return file_path.stat().st_mtime_ns
+
 
 def cache_modification(module_name: str, task_name: str, path: str, time: float | int):
     data = get_cache()

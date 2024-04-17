@@ -57,7 +57,7 @@ def task(name: str, dir: str | None = None, prelude: Prelude | None = None, phon
         if prelude:
             set_task_meta(name, 'prelude', lambda *args: prelude)
 
-        def wrapped(project: Project, module_name, *args):
+        def wrapped(project: Project, params: dict[str, Any], module_name, *args):
             old_meta = sys.modules["taskapp"].current_meta
             task_meta = get_task_meta(name, module_name=module_name)
             sys.modules["taskapp"].current_meta =  task_meta# type: ignore
@@ -73,9 +73,9 @@ def task(name: str, dir: str | None = None, prelude: Prelude | None = None, phon
                         return
                     
                     for route in prelude_result.routes:
-                        project.execute(route)
+                        project.execute(route, params)
                     
-                    if not should_recompute(module_name, name, prelude_result.dependencies):
+                    if not should_recompute(module_name, name, prelude_result.dependencies) and not params.get("force-recompute") == True:
                         print("Nothing to recompute!")
                         return f"Task {module_name}.{name} had nothing to recompute based on its dependencies"
                 elif prelude_result == None:
