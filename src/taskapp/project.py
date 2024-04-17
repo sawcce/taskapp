@@ -107,16 +107,22 @@ class Route:
 
     def __repr__(self) -> str:
         return pprint.pformat(self.__dict__)
+    
+class Runner:
+    def run(self, match: Route, wild_matches: list[str]):
+        pass
 
 class Project:
     name: str
     description: str
     routes: list[Route]
+    runner: Runner
 
-    def __init__(self, project_data):
+    def __init__(self, project_data, runner: Runner):
         self.name = project_data["name"]
         self.description = project_data["description"]
         self.routes = []
+        self.runner = runner
 
         for route_data in project_data["routes"]:
             self.routes.append(Route(route_data))
@@ -138,6 +144,25 @@ class Project:
 
                 if result:
                     return result
+
+    def execute(self, route: str | list[str]):
+        args = route
+
+        if isinstance(route, str):
+            args = route.split(" ")
+
+        matched = self.match(args)
+        if matched:
+            matched, wild_matches = matched
+            self.runner.run(matched, wild_matches)
+            if len(args) != len(matched.path) + len(matched.identifier) - 1:
+                raise Exception("Wrong amount of arguments!")
+        else:
+            print(f"Description: {self.description}")
+            print("Available commands:")
+            for av_route in self.routes:
+                print(f"-> {av_route.name}")
+
 
 def cache_template():
     return {

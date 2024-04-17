@@ -1,25 +1,14 @@
 import sys, os
-from taskapp.project import parse_project, Project 
+from typing import Any
+from taskapp.project import Route, Runner, parse_project, Project 
 import importlib.util
 
-
-def main():
-    args = sys.argv[1:]
-    cwd = os.getcwd()
-
-    project_data = parse_project(cwd)
-    project = Project(project_data)
-    matched = project.match(args)
-
-    print(f'Running the Task Apparatus on the "{project.name}" project')
-
-    # TODO: Handle catch routes
-    if matched:
-        matched, wild_matches = matched
-
-        if len(args) != len(matched.path) + len(matched.identifier) - 1:
-            raise Exception("Wrong amount of arguments!")
-
+class CliRunner(Runner):
+    def __init__(self) -> None:
+        pass
+        
+    def run(self, matched: Route, wild_matches: list[str]) -> Any:
+        cwd = os.getcwd()
         path = os.path.join(cwd, *matched.path[:-1])
         path = os.path.join(path, matched.path[len(matched.path) - 1] + ".py")
 
@@ -45,16 +34,23 @@ def main():
             if execution_result:
                 print("Task yielded:")
                 print(execution_result)
+                return execution_result
             else:
                 print("Task yielded no result")
         else:
             print("Couldn't find task declaration!")
+        pass
 
-    else:
-        print(f"Description: {project.description}")
-        print("Available commands:")
-        for route in project.routes:
-            print(f"-> {route.name}")
+def main():
+    args = sys.argv[1:]
+    cwd = os.getcwd()
+
+    runner = CliRunner()
+    project_data = parse_project(cwd)
+    project = Project(project_data, runner)
+
+    print(f'Running the Task Apparatus on the "{project.name}" project')
+    project.execute(args)
 
 
 if __name__ == "__main__":
