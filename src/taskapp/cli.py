@@ -1,9 +1,11 @@
 import sys, os
 from types import ModuleType
 from typing import Any
+from taskapp.console import console
 from taskapp.project import Route, Runner, parse_project, Project
 import importlib.util
 
+# TODO: Handle nested routes with the same name
 
 class CliRunner(Runner):
     modules: dict[str, ModuleType]
@@ -25,7 +27,7 @@ class CliRunner(Runner):
         module_name = ".".join(["taskroot"] + matched.path[1:])
 
         if self.modules.get(module_name) == None:
-            print(f'Loading module at path: "{path}"...')
+            console.print(f'[grey42]Loading module at path: "{path}"...')
 
             spec = importlib.util.spec_from_file_location(module_name, path)
 
@@ -39,6 +41,7 @@ class CliRunner(Runner):
         else:
             module = self.modules[module_name]
 
+        console.print(f"[cyan]Running task: [bold]{matched.name}")
         method_name = f"taskapp${module_name}${matched.name}"
 
         if len(matched.identifier) > 0:
@@ -49,13 +52,10 @@ class CliRunner(Runner):
                 project, params, module_name, *wild_matches
             )
             if execution_result:
-                print("Task yielded:")
-                print(execution_result)
+                console.print(f'[bold]Execution result[/bold]: "{execution_result}"')
                 return execution_result
-            else:
-                print("Task yielded no result")
         else:
-            print("Couldn't find task declaration!")
+            console.print("[bold red]Couldn't find task declaration!")
         pass
 
 
@@ -83,7 +83,9 @@ def main():
     project_data = parse_project(cwd)
     project = Project(project_data, runner)
 
-    print(f'Running the Task Apparatus on the "{project.name}" project')
+    console.print(
+        f'[bold]Running the Task Apparatus on the [blue]"{project.name}"[/blue] project'
+    )
     project.execute(computed_args, params)
 
 
