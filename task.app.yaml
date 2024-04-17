@@ -25,3 +25,6 @@ routes:
     # Demo nested route
       - demo
     - "*"
+  - format(catch):
+    - all
+    - "*"

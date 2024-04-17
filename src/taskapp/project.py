@@ -109,7 +109,7 @@ class Route:
         return pprint.pformat(self.__dict__)
     
 class Runner:
-    def run(self, match: Route, wild_matches: list[str]):
+    def run(self, project: "Project", match: Route, wild_matches: list[str]):
         pass
 
 class Project:
@@ -154,7 +154,7 @@ class Project:
         matched = self.match(args)
         if matched:
             matched, wild_matches = matched
-            self.runner.run(matched, wild_matches)
+            self.runner.run(self, matched, wild_matches)
             if len(args) != len(matched.path) + len(matched.identifier) - 1:
                 raise Exception("Wrong amount of arguments!")
         else:

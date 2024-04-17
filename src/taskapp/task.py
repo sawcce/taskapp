@@ -2,7 +2,7 @@ from glob import glob
 import sys
 from typing import Any
 
-from taskapp.project import cache_modification, cached_last_modification, last_modification
+from taskapp.project import Project, cache_modification, cached_last_modification, last_modification
 from taskapp import get_full_task_name, get_task_meta, set_task_meta
 
 
@@ -13,8 +13,11 @@ class Prelude:
     """If not set to None, this field indicates that the 
         prevents the task from executing. This field 
         shoud contain the reason of the fail."""   
+    routes: list[str] = []
+    """A list of routes that should be called before executing this task"""
     
-    def __init__(self, dependencies: list[str] = [], reason: Any | None = None) -> None:
+    def __init__(self, dependencies: list[str] = [], routes: list[str] = [], reason: Any | None = None) -> None:
+        self.routes = routes
         self.dependencies = dependencies
         self.fail = reason
     
@@ -34,7 +37,7 @@ def prelude(name: str):
         return definition
     return wrapper
 
-def task(name: str, dir: str | None = None, prelude: Prelude | None = None):
+def task(name: str, dir: str | None = None, prelude: Prelude | None = None, phony: bool = False):
     """
         A decorator to define a task, the actual function name is meaningless.  \n
         name: corresponds to the task name. \n
@@ -54,7 +57,7 @@ def task(name: str, dir: str | None = None, prelude: Prelude | None = None):
         if prelude:
             set_task_meta(name, 'prelude', lambda *args: prelude)
 
-        def wrapped(module_name, *args):
+        def wrapped(project: Project, module_name, *args):
             old_meta = sys.modules["taskapp"].current_meta
             task_meta = get_task_meta(name, module_name=module_name)
             sys.modules["taskapp"].current_meta =  task_meta# type: ignore
@@ -68,6 +71,9 @@ def task(name: str, dir: str | None = None, prelude: Prelude | None = None):
                         print(f"Couldn't execute task because: {prelude_result.fail}")
                         sys.modules["taskapp"].current_meta = old_meta # type: ignore
                         return
+                    
+                    for route in prelude_result.routes:
+                        project.execute(route)
                     
                     if not should_recompute(module_name, name, prelude_result.dependencies):
                         print("Nothing to recompute!")
