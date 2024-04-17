@@ -24,7 +24,7 @@ def prelude(name: str):
         return definition
     return wrapper
 
-def task(name: str, dir: str | None = None, prelude: list[str] | None = None):
+def task(name: str, dir: str | None = None, prelude: Prelude | None = None):
     """
         A decorator to define a task, the actual function name is meaningless.  \n
         name: corresponds to the task name. \n
@@ -42,7 +42,7 @@ def task(name: str, dir: str | None = None, prelude: list[str] | None = None):
         set_task_meta(name, 'cwd', dir)
 
         if prelude:
-            set_task_meta(name, 'cwd', lambda *args: prelude)
+            set_task_meta(name, 'prelude', lambda *args: prelude)
 
         def wrapped(module_name, *args):
             old_meta = sys.modules["taskapp"].current_meta
