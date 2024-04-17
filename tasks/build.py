@@ -1,6 +1,6 @@
 from taskapp import run
-from taskapp.task import task
+from taskapp.task import Fail, Glob, task
 
-@task(name="build")
+@task(name="build", prelude=Glob("src/**/*.py"))
 def build():
     run("python", "-m", "build")
