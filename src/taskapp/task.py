@@ -59,6 +59,8 @@ def task(name: str, dir: str | None = None, prelude: Prelude | None = None):
             task_meta = get_task_meta(name, module_name=module_name)
             sys.modules["taskapp"].current_meta =  task_meta# type: ignore
 
+            prelude_result = None
+
             if (prelude := task_meta.get("prelude")) != None:
                 prelude_result = prelude(*args)
                 if isinstance(prelude_result, Prelude):
@@ -75,15 +77,16 @@ def task(name: str, dir: str | None = None, prelude: Prelude | None = None):
 
             result = definition(*args)
         
-            for dep in prelude_result.dependencies:
-                cache_modification(module_name, name, dep, last_modification(dep))
+            if isinstance(prelude_result, Prelude):
+                for dep in prelude_result.dependencies:
+                    cache_modification(module_name, name, dep, last_modification(dep))
 
             sys.modules["taskapp"].current_meta = old_meta # type: ignore
             return result
 
         setattr(sys.modules[module_name], tn, wrapped)
 
-        return lambda x: None
+        return definition
     return wrapper
 
 def should_recompute(module_name: str, task_name: str, dependencies: list[str]):
