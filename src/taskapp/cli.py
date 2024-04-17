@@ -1,12 +1,15 @@
 import sys, os
+from types import ModuleType
 from typing import Any
 from taskapp.project import Route, Runner, parse_project, Project
 import importlib.util
 
 
 class CliRunner(Runner):
+    modules: dict[str, ModuleType]
+
     def __init__(self) -> None:
-        pass
+        self.modules = {}
 
     def run(
         self,
@@ -19,17 +22,22 @@ class CliRunner(Runner):
         path = os.path.join(cwd, *matched.path[:-1])
         path = os.path.join(path, matched.path[len(matched.path) - 1] + ".py")
 
-        print(f'Loading module at path: "{path}"...')
-
         module_name = ".".join(["taskroot"] + matched.path[1:])
-        spec = importlib.util.spec_from_file_location(module_name, path)
 
-        if spec == None:
-            raise Exception("Couldn't generate module spec!")
+        if self.modules.get(module_name) == None:
+            print(f'Loading module at path: "{path}"...')
 
-        module = importlib.util.module_from_spec(spec)
-        sys.modules[module_name] = module
-        spec.loader.exec_module(module)  # type: ignore
+            spec = importlib.util.spec_from_file_location(module_name, path)
+
+            if spec == None:
+                raise Exception("Couldn't generate module spec!")
+
+            module = importlib.util.module_from_spec(spec)
+            sys.modules[module_name] = module
+            spec.loader.exec_module(module)  # type: ignore
+            self.modules[module_name] = module
+        else:
+            module = self.modules[module_name]
 
         method_name = f"taskapp${module_name}${matched.name}"
 
