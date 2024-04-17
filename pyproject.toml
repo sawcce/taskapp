@@ -5,8 +5,7 @@ authors = [{ name = "sawcce", email = "sawcce@proton.me" }]
 description = "A cli to automate tasks"
 requires-python = ">=3.10"
 readme = "README.md"
-dependencies = ["pyyaml"]
-
+dependencies = ["pyyaml", "rich"]
 
 [build-system]
 requires = ["hatchling"]
