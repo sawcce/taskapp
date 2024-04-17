@@ -1,4 +1,6 @@
-from yaml import load, Loader
+from pathlib import Path
+from typing import Any
+from yaml import dump, load, Loader
 from os import path
 import pprint
 
@@ -136,3 +138,42 @@ class Project:
 
                 if result:
                     return result
+
+def cache_template():
+    return {
+        "files": {
+
+        }
+    }
+
+# TODO: Optimize cache
+default_cache_path = "taskapp.cache.yaml"
+
+def get_cache(path: str = default_cache_path):
+    file_path = Path(path)
+
+    if not file_path.is_file():
+        Path.write_text(file_path, dump(cache_template()))
+        return cache_template()
+    
+    return load(file_path.read_text(), Loader)
+
+def write_cache(data: Any, path: str = default_cache_path):
+    file_path = Path(path)
+    file_path.write_text(dump(data))
+
+def cached_last_modification(path: str) -> int | None:
+    data = get_cache()["files"].get(path)
+    if data == None:
+        cache_modification(path, last_modification(path))
+
+    return data
+
+def last_modification(path: str) -> int:
+    file_path = Path(path)
+    return file_path.stat().st_mtime_ns
+
+def cache_modification(path: str, time: float | int):
+    data = get_cache()
+    data["files"][path] = time
+    write_cache(data)

@@ -1,6 +1,8 @@
+from glob import glob
 import sys
-from typing import Any, Self
+from typing import Any
 
+from taskapp.project import cache_modification, cached_last_modification, last_modification
 from taskapp import get_full_task_name, get_task_meta, set_task_meta
 
 
@@ -12,11 +14,19 @@ class Prelude:
         prevents the task from executing. This field 
         shoud contain the reason of the fail."""   
     
-    def __init__(self, reason: Any | None = None) -> None:
+    def __init__(self, dependencies: list[str] = [], reason: Any | None = None) -> None:
+        self.dependencies = dependencies
         self.fail = reason
     
 def Fail(reason: Any): # type: ignore
     return Prelude(reason)
+
+def Glob(*patterns: str):
+    matches = []
+    for pattern in patterns:
+        matches += glob(pattern)
+    
+    return Prelude(dependencies=matches)
 
 def prelude(name: str):
     def wrapper(definition):
@@ -56,12 +66,17 @@ def task(name: str, dir: str | None = None, prelude: Prelude | None = None):
                         print(f"Couldn't execute task because: {prelude_result.fail}")
                         sys.modules["taskapp"].current_meta = old_meta # type: ignore
                         return
-                    if len(prelude_result.dependencies) > 0:
-                        print(f"[TODO] Task dependencies: {prelude_result.dependencies}")
+                    
+                    if not should_recompute(prelude_result.dependencies):
+                        print("Nothing to recompute!")
+                        return f"Task {module_name}.{name} had nothing to recompute based on its dependencies"
                 elif prelude_result == None:
                     pass
 
             result = definition(*args)
+        
+            for dep in prelude_result.dependencies:
+                cache_modification(dep, last_modification(dep))
 
             sys.modules["taskapp"].current_meta = old_meta # type: ignore
             return result
@@ -70,3 +85,14 @@ def task(name: str, dir: str | None = None, prelude: Prelude | None = None):
 
         return lambda x: None
     return wrapper
+
+def should_recompute(dependencies: list[str]):
+    if len(dependencies) == 0:
+        return True
+
+    should = False
+    for dep in dependencies:
+        cached = cached_last_modification(dep)
+        if cached == None or cached < last_modification(dep):
+            should = True
+    return should
