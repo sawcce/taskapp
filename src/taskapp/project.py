@@ -1,4 +1,3 @@
-from traceback import print_tb
 from yaml import load, Loader
 from os import path
 import pprint

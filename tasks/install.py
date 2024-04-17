@@ -2,7 +2,8 @@
     Handles the process of installing the package for dev purposes
 """
 
-from taskapp import run, task
+from taskapp import run
+from taskapp.task import task
 
 @task(name="local")
 def local():

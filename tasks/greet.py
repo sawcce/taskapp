@@ -1,4 +1,4 @@
-from taskapp import task
+from taskapp.task import task
 
 @task("wildcard")
 def wildcard(name: str): return affirmative(name)

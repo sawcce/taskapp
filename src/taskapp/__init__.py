@@ -13,34 +13,40 @@ def get_cwd():
 def run(command: str, *args: str):
     subprocess.run([command, *args], shell=True, cwd=get_cwd())
 
-def task(name: str, dir: str | None = None):
-    """
-        A decorator to define a task, the actual function name is meaningless.  \n
-        name: corresponds to the task name. \n
-        dir: specifies the `cwd` used by taskapp methods (like `run`) when executing the task. \n
-    """
-    def wrapper(definition):
-        f = list(sys._current_frames().values())[0]
-        if f.f_back == None:
-            raise Exception("Expected module name")
+def get_module_name(level: int) -> str:
+    f = list(sys._current_frames().values())[0]
+    back = f
+    for _ in range(level):
+        if back.f_back == None:
+            raise Exception(f"Couldn't retrieve module name with {level=}")
 
-        module_name = f.f_back.f_globals["__name__"]
-        tn = f"taskapp${module_name}${name}"
+        back = back.f_back
+    return back.f_globals["__name__"]
 
-        meta = {}
-        setattr(sys.modules[module_name], f"{tn}.meta", meta)
+def get_full_task_name(module: str, task_name: str) -> str:
+    return f"taskapp${module}${task_name}"
 
-        if dir:
-            meta['cwd'] = dir
+def set_task_meta(task_name: str, key: str, value: Any):
+    module_name = get_module_name(level=3)
+    module = sys.modules[module_name]
+    full_task_name = get_full_task_name(module_name, task_name)
+    meta_key = full_task_name + ".meta"
 
-        def wrapped(*args):
-            old_meta = sys.modules["taskapp"].current_meta
-            sys.modules["taskapp"].current_meta = meta # type: ignore
-            result = definition(*args)
-            sys.modules["taskapp"].current_meta = old_meta # type: ignore
-            return result
+    if hasattr(module, meta_key):
+        meta = getattr(module, meta_key)
+        meta[key]  = value
+    else:
+        setattr(module, meta_key, {key: value})
 
-        setattr(sys.modules[module_name], tn, wrapped)
+def get_task_meta(task_name: str, level: int = 3, module_name: str | None = None):
+    if module_name == None:
+        module_name = get_module_name(level)
 
-        return lambda x: None
-    return wrapper
+    module = sys.modules[module_name]
+    full_task_name = get_full_task_name(module_name, task_name)
+    meta_key = full_task_name + ".meta"
+
+    if hasattr(module, meta_key):
+        return getattr(module, meta_key)
+    else:
+        return {}

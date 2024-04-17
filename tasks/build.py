@@ -1,4 +1,5 @@
-from taskapp import task, run
+from taskapp import run
+from taskapp.task import task
 
 @task(name="build")
 def build():

@@ -1,5 +1,4 @@
-from taskapp import task
-
+from taskapp.task import task
 
 @task("greet")
 def greet():

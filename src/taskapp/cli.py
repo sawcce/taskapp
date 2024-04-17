@@ -41,7 +41,7 @@ def main():
             method_name = f"taskapp${module_name}$" + ".".join(matched.identifier)
 
         if hasattr(module, method_name) and callable(getattr(module, method_name)):
-            execution_result = getattr(module, method_name)(*wild_matches)
+            execution_result = getattr(module, method_name)(module_name, *wild_matches)
             if execution_result:
                 print("Task yielded:")
                 print(execution_result)
