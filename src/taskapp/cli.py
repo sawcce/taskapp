@@ -40,7 +40,7 @@ class CliRunner(Runner):
             return
         
         try:
-            self.prelude()
+            self.prelude(self.project)
         except Exception as e:
             console.print("[bold red]Encountered an error in prelude:")
             console.print(e.args[0])
