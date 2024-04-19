@@ -8,6 +8,7 @@ import importlib.util
 
 # TODO: Handle nested routes with the same name
 
+
 class CliRunner(Runner):
     modules: dict[str, ModuleType]
     project: Project
@@ -34,11 +35,10 @@ class CliRunner(Runner):
                     console.log("[red bold] project prelude should be callable")
                 self.prelude = prelude
 
-    
     def init_prelude(self):
         if not self.prelude:
             return
-        
+
         try:
             self.prelude(self.project)
         except Exception as e:

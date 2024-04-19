@@ -200,10 +200,10 @@ class Project:
             console.print("Available root commands:")
             for av_route in self.routes:
                 console.print(f"-> {av_route.name}")
-    
+
     def get_children(self):
         return self.routes
-    
+
     def get_value(self):
         return "Project"
 
