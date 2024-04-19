@@ -44,6 +44,7 @@ class CliRunner(Runner):
         except Exception as e:
             console.print("[bold red]Encountered an error in prelude:")
             console.print(e.args[0])
+            console.print(f"Full error: [italic]{e}")
             return False
 
     def run(

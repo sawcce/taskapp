@@ -1,4 +1,5 @@
 import subprocess
+from taskapp import matches_semver
 from taskapp.console import console
 import re
 import semver
@@ -22,24 +23,9 @@ class Pip:
             return True
         
         compare = version.compare(self.requirement[0])
-        matches = self.matches(self.requirement[1], compare)
+        matches = matches_semver(self.requirement[1], compare)
 
         if matches:
             console.print(f"[green]* pip requirement {self.requirement[1]} {self.requirement[0]} met!")
         else:
             raise Exception(f"[red bold]* pip requirement {self.requirement[1]} {self.requirement[0]} not met!")
-
-    def matches(self, op, compare_result):
-        match op:
-            case "=":
-                return compare_result == 0
-            case ">=":
-                return compare_result >=0
-            case "<=":
-                return compare_result <= 0
-            case ">":
-                return compare_result > 0
-            case "<":
-                return compare_result < 0
-        
-        

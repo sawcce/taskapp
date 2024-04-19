@@ -42,3 +42,16 @@ def get_task_meta(task_name: str, module_name: str):
         return getattr(module, meta_key)
     else:
         return {}
+
+def matches_semver(op: str, compare_result: int):
+    match op:
+        case "=":
+            return compare_result == 0
+        case ">=":
+            return compare_result >=0
+        case "<=":
+            return compare_result <= 0
+        case ">":
+            return compare_result > 0
+        case "<":
+            return compare_result < 0

@@ -1,9 +1,10 @@
 from pathlib import Path
-from typing import Any
+from typing import Any, Callable
 from yaml import dump, load, Loader
 from os import path
 import pprint
 from taskapp.console import console
+from rich.prompt import Prompt
 
 
 def parse_project(root: str):
@@ -241,9 +242,28 @@ class Project:
     ):
         self.cache["files"][f"{module_name}::{task_name}:{path}"] = time
 
+    def cache_data(self):
+        if (d := self.cache.get("data")) != None:
+            return d
+        self.cache["data"] = {}
+        return self.cache["data"]
+    
+    def cached_or_prompt(self, key: str, message: str, options: list[str], post_message: Callable | None = None, force: bool = False):
+        val = self.cache_data().get(key)
+        if val != None and not force:
+            return val
+
+        choice = Prompt.ask(message, choices=options, show_default=True)
+        self.cache_data()[key] = choice
+
+        if post_message != None:
+            console.print(post_message(choice))
+
+        return choice
+
 
 def cache_template():
-    return {"files": {}}
+    return {"files": {}, "data": {}}
 
 
 # TODO: Optimize cache
