@@ -9,4 +9,4 @@ def greet():
 
 
 def prelude(project: Project):
-    Pip().requires("20", "=").patch()
+    Pip().patch()
