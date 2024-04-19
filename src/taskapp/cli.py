@@ -1,18 +1,50 @@
 import sys, os
 from types import ModuleType
-from typing import Any
+from typing import Any, Callable
 from taskapp.console import console
 from taskapp.project import Route, Runner, parse_project, Project
+from pathlib import Path
 import importlib.util
 
 # TODO: Handle nested routes with the same name
 
-
 class CliRunner(Runner):
     modules: dict[str, ModuleType]
+    project: Project
+    prelude: Callable | None
 
     def __init__(self) -> None:
         self.modules = {}
+        self.prelude = None
+
+        tasks_path = Path("tasks.py")
+        if tasks_path.is_file():
+            spec = importlib.util.spec_from_file_location("taskroot", "tasks.py")
+
+            if spec == None:
+                raise Exception("Couldn't generate module spec!")
+
+            module = importlib.util.module_from_spec(spec)
+            sys.modules["taskroot"] = module
+            spec.loader.exec_module(module)  # type: ignore
+
+            if hasattr(module, "prelude"):
+                prelude = getattr(module, "prelude")
+                if not callable(prelude):
+                    console.log("[red bold] project prelude should be callable")
+                self.prelude = prelude
+
+    
+    def init_prelude(self):
+        if not self.prelude:
+            return
+        
+        try:
+            self.prelude()
+        except Exception as e:
+            console.print("[bold red]Encountered an error in prelude:")
+            console.print(e.args[0])
+            return False
 
     def run(
         self,
@@ -83,11 +115,16 @@ def main():
     runner = CliRunner()
     project_data = parse_project(cwd)
     project = Project(project_data, runner)
+    runner.project = project
 
     console.print(
         f'[bold]Running the Task Apparatus on the [blue]"{project.name}"[/blue] project'
     )
-    project.execute(computed_args, params)
+
+    if runner.init_prelude() == False:
+        console.print("[red]Aborting execution.")
+    else:
+        project.execute(computed_args, params)
 
 
 if __name__ == "__main__":
