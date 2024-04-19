@@ -1,6 +1,6 @@
 from glob import glob
 import sys
-from typing import Any
+from typing import Any, Callable
 
 from taskapp.project import (
     Project,
@@ -45,8 +45,8 @@ def Glob(*patterns: str):
 
 
 def prelude(name: str):
-    def wrapper(definition):
-        set_task_meta(name, "prelude", definition)
+    def wrapper(definition: Callable):
+        set_task_meta(definition.__module__, name, "prelude", definition)
         return definition
 
     return wrapper
@@ -64,22 +64,22 @@ def task(
     prelude: a list of routes that need to be called before this task is ran
     """
 
-    def wrapper(definition):
+    def wrapper(definition: Callable):
         f = list(sys._current_frames().values())[0]
         if f.f_back == None:
             raise Exception("Expected module name")
 
-        module_name = f.f_back.f_globals["__name__"]
+        module_name = definition.__module__
         tn = get_full_task_name(module_name, name)
 
-        set_task_meta(name, "cwd", dir)
+        set_task_meta(module_name, name, "cwd", dir)
 
         if prelude:
-            set_task_meta(name, "prelude", lambda *args: prelude)
+            set_task_meta(module_name, name, "prelude", lambda *args: prelude)
 
         def wrapped(project: Project, params: dict[str, Any], module_name, *args):
             old_meta = sys.modules["taskapp"].current_meta
-            task_meta = get_task_meta(name, module_name=module_name)
+            task_meta = get_task_meta(name, module_name)
             sys.modules["taskapp"].current_meta = task_meta  # type: ignore
 
             prelude_result = None

@@ -16,24 +16,11 @@ def get_cwd():
 def run(command: str, *args: str):
     subprocess.run([command, *args], shell=True, cwd=get_cwd())
 
-
-def get_module_name(level: int) -> str:
-    f = list(sys._current_frames().values())[0]
-    back = f
-    for _ in range(level):
-        if back.f_back == None:
-            raise Exception(f"Couldn't retrieve module name with {level=}")
-
-        back = back.f_back
-    return back.f_globals["__name__"]
-
-
 def get_full_task_name(module: str, task_name: str) -> str:
     return f"taskapp${module}${task_name}"
 
 
-def set_task_meta(task_name: str, key: str, value: Any):
-    module_name = get_module_name(level=3)
+def set_task_meta(module_name: str, task_name: str, key: str, value: Any):
     module = sys.modules[module_name]
     full_task_name = get_full_task_name(module_name, task_name)
     meta_key = full_task_name + ".meta"
@@ -45,10 +32,7 @@ def set_task_meta(task_name: str, key: str, value: Any):
         setattr(module, meta_key, {key: value})
 
 
-def get_task_meta(task_name: str, level: int = 3, module_name: str | None = None):
-    if module_name == None:
-        module_name = get_module_name(level)
-
+def get_task_meta(task_name: str, module_name: str):
     module = sys.modules[module_name]
     full_task_name = get_full_task_name(module_name, task_name)
     meta_key = full_task_name + ".meta"
