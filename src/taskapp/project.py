@@ -153,15 +153,26 @@ class Project:
     description: str
     routes: list[Route]
     runner: Runner
+    cache_path: str = "taskapp.cache.yaml"
+    cache: dict[str, Any]
 
     def __init__(self, project_data, runner: Runner):
         self.name = project_data["name"]
         self.description = project_data["description"]
         self.routes = []
         self.runner = runner
+        self.init_cache()
 
         for route_data in project_data["routes"]:
             self.routes.append(Route(route_data))
+
+    def init_cache(self):
+        file_path = Path(self.cache_path)
+
+        if not file_path.is_file():
+            self.cache = cache_template()
+        else:
+            self.cache = load(file_path.read_text(), Loader)
 
     def match(
         self, args, routes=None, level: int = 0, wild_matches: list[str] = []
@@ -207,6 +218,29 @@ class Project:
     def get_value(self):
         return "Project"
 
+    def get_cache(self):
+        return self.cache
+
+    def write_cache(self):
+        file_path = Path(self.cache_path)
+        file_path.write_text(dump(self.cache))
+
+    def cached_last_modification(
+        self, module_name: str, task_name: str, path: str
+    ) -> int | None:
+        data = self.cache["files"].get(f"{module_name}::{task_name}:{path}")
+        if data == None:
+            self.cache_modification(
+                module_name, task_name, path, last_modification(path)
+            )
+
+        return data
+
+    def cache_modification(
+        self, module_name: str, task_name: str, path: str, time: float | int
+    ):
+        self.cache["files"][f"{module_name}::{task_name}:{path}"] = time
+
 
 def cache_template():
     return {"files": {}}
@@ -216,35 +250,6 @@ def cache_template():
 default_cache_path = "taskapp.cache.yaml"
 
 
-def get_cache(path: str = default_cache_path):
-    file_path = Path(path)
-
-    if not file_path.is_file():
-        Path.write_text(file_path, dump(cache_template()))
-        return cache_template()
-
-    return load(file_path.read_text(), Loader)
-
-
-def write_cache(data: Any, path: str = default_cache_path):
-    file_path = Path(path)
-    file_path.write_text(dump(data))
-
-
-def cached_last_modification(module_name: str, task_name: str, path: str) -> int | None:
-    data = get_cache()["files"].get(f"{module_name}::{task_name}:{path}")
-    if data == None:
-        cache_modification(module_name, task_name, path, last_modification(path))
-
-    return data
-
-
 def last_modification(path: str) -> int:
     file_path = Path(path)
     return file_path.stat().st_mtime_ns
-
-
-def cache_modification(module_name: str, task_name: str, path: str, time: float | int):
-    data = get_cache()
-    data["files"][f"{module_name}::{task_name}:{path}"] = time
-    write_cache(data)

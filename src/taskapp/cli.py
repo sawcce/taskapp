@@ -89,7 +89,6 @@ class CliRunner(Runner):
                 return execution_result
         else:
             console.print("[bold red]Couldn't find task declaration!")
-        pass
 
 
 def main():
@@ -121,10 +120,13 @@ def main():
         f'[bold]Running the Task Apparatus on the [blue]"{project.name}"[/blue] project'
     )
 
-    if runner.init_prelude() == False:
-        console.print("[red]Aborting execution.")
-    else:
-        project.execute(computed_args, params)
+    try:
+        if runner.init_prelude() == False:
+            console.print("[red]Aborting execution.")
+        else:
+            project.execute(computed_args, params)
+    finally:
+        project.write_cache()
 
 
 if __name__ == "__main__":

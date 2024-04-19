@@ -4,8 +4,6 @@ from typing import Any, Callable
 
 from taskapp.project import (
     Project,
-    cache_modification,
-    cached_last_modification,
     last_modification,
 )
 from taskapp import get_full_task_name, get_task_meta, set_task_meta
@@ -97,7 +95,7 @@ def task(
 
                     if (
                         not should_recompute(
-                            module_name, name, prelude_result.dependencies
+                            project, module_name, name, prelude_result.dependencies
                         )
                         and not params.get("force-recompute") == True
                     ):
@@ -110,7 +108,9 @@ def task(
 
             if isinstance(prelude_result, Prelude):
                 for dep in prelude_result.dependencies:
-                    cache_modification(module_name, name, dep, last_modification(dep))
+                    project.cache_modification(
+                        module_name, name, dep, last_modification(dep)
+                    )
 
             sys.modules["taskapp"].current_meta = old_meta  # type: ignore
             return result
@@ -122,13 +122,15 @@ def task(
     return wrapper
 
 
-def should_recompute(module_name: str, task_name: str, dependencies: list[str]):
+def should_recompute(
+    project: Project, module_name: str, task_name: str, dependencies: list[str]
+):
     if len(dependencies) == 0:
         return True
 
     should = False
     for dep in dependencies:
-        cached = cached_last_modification(module_name, task_name, dep)
+        cached = project.cached_last_modification(module_name, task_name, dep)
         if cached == None or cached < last_modification(dep):
             should = True
     return should
