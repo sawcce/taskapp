@@ -16,6 +16,7 @@ def get_cwd():
 def run(command: str, *args: str):
     subprocess.run([command, *args], shell=True, cwd=get_cwd())
 
+
 def get_full_task_name(module: str, task_name: str) -> str:
     return f"taskapp${module}${task_name}"
 
