@@ -3,6 +3,7 @@ from typing import Any
 from yaml import dump, load, Loader
 from os import path
 import pprint
+from taskapp.console import console
 
 
 def parse_project(root: str):
@@ -195,10 +196,16 @@ class Project:
             if len(args) != len(matched.path) + len(matched.identifier) - 1:
                 raise Exception("Wrong amount of arguments!")
         else:
-            print(f"Description: {self.description}")
-            print("Available commands:")
+            console.print(f"Description: {self.description}")
+            console.print("Available root commands:")
             for av_route in self.routes:
-                print(f"-> {av_route.name}")
+                console.print(f"-> {av_route.name}")
+    
+    def get_children(self):
+        return self.routes
+    
+    def get_value(self):
+        return "Project"
 
 
 def cache_template():
