@@ -3,14 +3,14 @@ import semver
 from taskapp import matches_semver
 from taskapp.project import Project
 from taskapp.console import console
-
-
 class Node:
     vm: str
-    requirements: list[tuple[semver.Version, str]]
+    requirements: list[tuple[semver.Version, str]] = []
+    available_versions: list[semver.Version] = []
 
     def __init__(self) -> None:
         self.requirements = []
+        self.available_versions = []
 
     def requires(self, version: str, op: str = "="):
         self.requirements.append((semver.Version.parse(version, True), op))
@@ -26,6 +26,7 @@ class Node:
         )
 
         versions = self.get_versions_list() or []
+        self.available_versions += versions
 
         for version, op in self.requirements:
             has_match = False
@@ -41,8 +42,6 @@ class Node:
 
         console.print(f"[green]* node requirements met!")
 
-
-    
     def get_versions_list(self):
         match self.vm:
             case "none":

@@ -5,6 +5,7 @@ from os import path
 import pprint
 from taskapp.console import console
 from rich.prompt import Prompt
+import semver
 
 
 def parse_project(root: str):
@@ -247,8 +248,15 @@ class Project:
             return d
         self.cache["data"] = {}
         return self.cache["data"]
-    
-    def cached_or_prompt(self, key: str, message: str, options: list[str], post_message: Callable | None = None, force: bool = False):
+
+    def cached_or_prompt(
+        self,
+        key: str,
+        message: str,
+        options: list[str],
+        post_message: Callable | None = None,
+        force: bool = False,
+    ):
         val = self.cache_data().get(key)
         if val != None and not force:
             return val
@@ -260,6 +268,33 @@ class Project:
             console.print(post_message(choice))
 
         return choice
+
+
+class Version:
+    version: semver.Version
+
+    def __init__(self, version: str) -> None:
+        self.version = semver.Version.parse(version, True)
+
+    def matches(self, other: "Version", op: str):
+        diff = other.version.compare(self.version)
+        match op:
+            case "=":
+                return diff == 0
+            case ">=":
+                return diff >= 0
+            case "<=":
+                return diff <= 0
+            case ">":
+                return diff > 0
+            case "<":
+                return diff < 0
+
+
+class PackageSpec:
+    names: list[str]
+    version: Version
+    parameters: dict[str, Any]
 
 
 def cache_template():
